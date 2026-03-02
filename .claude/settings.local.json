@@ -1,5 +1,0 @@
-{
-  "permissions": {
-    "allow": ["Bash(where:*)", "Bash(npm install:*)", "Bash(oh-my-opencode install:*)"]
-  }
-}
