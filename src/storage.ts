@@ -118,7 +118,3 @@ export async function persistSortMode(mode: SortModeId): Promise<void> {
     }
   }
 }
-
-export function setSortModeInMemory(mode: SortModeId): void {
-  inMemorySortMode = mode;
-}

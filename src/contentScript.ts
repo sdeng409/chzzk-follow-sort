@@ -1,7 +1,7 @@
 import { fetchFollowingLivesChannelOrder } from './recommendedApi';
 import { reorderFollowingListDom } from './reorderDom';
 import { SORT_MODES, type SortModeId } from './sortModes';
-import { persistSortMode, readPersistedSortMode, setSortModeInMemory } from './storage';
+import { persistSortMode, readPersistedSortMode } from './storage';
 
 const DEBUG = false;
 const EXTENSION_ROOT_ID = 'chzzk-follow-sort-ext-root';
@@ -489,7 +489,6 @@ function bootstrap(): void {
       onSortModeChange: (mode) => {
         userSelectionVersion += 1;
         persistedSortMode = mode;
-        setSortModeInMemory(mode);
         void persistSortMode(mode);
         debugLog('selected sort mode changed', { mode });
       },
@@ -549,7 +548,6 @@ function bootstrap(): void {
 
       if (storedMode !== null && isSortModeId(storedMode)) {
         persistedSortMode = storedMode;
-        setSortModeInMemory(storedMode);
         requestSortOrder(storedMode, false);
       }
     })

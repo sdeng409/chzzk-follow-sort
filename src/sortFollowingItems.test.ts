@@ -23,9 +23,9 @@ describe('sortFollowingItems', () => {
   for (const mode of API_SORT_MODES) {
     it(`sorts by API rank for ${mode}`, () => {
       const input: TestItem[] = [
-        { id: 'rank-2', name: 'Two', apiSortRank: 2 },
-        { id: 'rank-0', name: 'Zero', apiSortRank: 0 },
-        { id: 'rank-1', name: 'One', apiSortRank: 1 },
+        { id: 'rank-2', key: 'rank-2', apiSortRank: 2 },
+        { id: 'rank-0', key: 'rank-0', apiSortRank: 0 },
+        { id: 'rank-1', key: 'rank-1', apiSortRank: 1 },
       ];
 
       const output = sortFollowingItems(input, mode);
@@ -36,11 +36,11 @@ describe('sortFollowingItems', () => {
 
   it('keeps unranked items after ranked items in original order', () => {
     const input: TestItem[] = [
-      { id: 'none-1', name: 'None 1' },
-      { id: 'rank-1', name: 'Rank 1', apiSortRank: 1 },
-      { id: 'none-2', name: 'None 2' },
-      { id: 'rank-3', name: 'Rank 3', apiSortRank: 3 },
-      { id: 'none-3', name: 'None 3' },
+      { id: 'none-1', key: 'none-1' },
+      { id: 'rank-1', key: 'rank-1', apiSortRank: 1 },
+      { id: 'none-2', key: 'none-2' },
+      { id: 'rank-3', key: 'rank-3', apiSortRank: 3 },
+      { id: 'none-3', key: 'none-3' },
     ];
 
     const output = sortFollowingItems(input, SORT_MODES.RECOMMEND);
@@ -50,9 +50,9 @@ describe('sortFollowingItems', () => {
 
   it('keeps original order when all sort keys tie', () => {
     const input: TestItem[] = [
-      { id: 'first', name: 'Same', apiSortRank: 1 },
-      { id: 'second', name: 'Same', apiSortRank: 1 },
-      { id: 'third', name: 'Same', apiSortRank: 1 },
+      { id: 'first', key: 'first', apiSortRank: 1 },
+      { id: 'second', key: 'second', apiSortRank: 1 },
+      { id: 'third', key: 'third', apiSortRank: 1 },
     ];
 
     for (const mode of API_SORT_MODES) {
@@ -63,8 +63,8 @@ describe('sortFollowingItems', () => {
 
   it('does not mutate input array', () => {
     const input: TestItem[] = [
-      { id: 'b', name: 'B', apiSortRank: 1 },
-      { id: 'a', name: 'A', apiSortRank: 0 },
+      { id: 'b', key: 'b', apiSortRank: 1 },
+      { id: 'a', key: 'a', apiSortRank: 0 },
     ];
 
     const output = sortFollowingItems(input, SORT_MODES.POPULAR);

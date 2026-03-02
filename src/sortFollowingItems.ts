@@ -1,7 +1,7 @@
 import { SORT_MODES, type SortModeId } from './sortModes';
 
 export interface SortableFollowingItem {
-  name: string;
+  key: string;
   apiSortRank?: number;
 }
 
