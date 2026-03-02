@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "CHZZK Following Sort Extension",
+  "version": "0.1.0",
+  "description": "Minimal MV3 scaffold for CHZZK followings tools.",
+  "permissions": ["storage"],
+  "host_permissions": ["https://api.chzzk.naver.com/*"],
+  "content_scripts": [
+    {
+      "matches": ["https://chzzk.naver.com/*"],
+      "js": ["contentScript.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
