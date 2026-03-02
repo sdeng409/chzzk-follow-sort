@@ -4,6 +4,7 @@ const FOLLOWING_LIVES_API_BASE_URL = 'https://api.chzzk.naver.com/service/v1/cha
 const CHANNEL_ID_PATTERN = /^[a-z0-9_-]{4,}$/i;
 const CACHE_TTL_MS = 30_000;
 const MAX_FALLBACK_SCAN_DEPTH = 6;
+const ERROR_BACKOFF_MS = 10_000;
 
 interface CachedSortOrder {
   fetchedAtMs: number;
@@ -26,6 +27,11 @@ const COMMON_ARRAY_PATHS: ReadonlyArray<ReadonlyArray<string>> = [
 
 const cachedSortOrderByType: Partial<Record<SortModeId, CachedSortOrder>> = {};
 const inFlightRequestByType: Partial<Record<SortModeId, Promise<readonly string[]>>> = {};
+const lastErrorMsByType: Partial<Record<SortModeId, number>> = {};
+
+interface ScanState {
+  iterations: number;
+}
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
@@ -112,15 +118,18 @@ function collectArraysByDepth(
   depth: number,
   result: unknown[][],
   seen: WeakSet<object>,
+  state: ScanState,
 ): void {
-  if (depth > MAX_FALLBACK_SCAN_DEPTH) {
+  if (depth > MAX_FALLBACK_SCAN_DEPTH || state.iterations > 1000) {
     return;
   }
+
+  state.iterations += 1;
 
   if (Array.isArray(value)) {
     result.push(value);
     for (const item of value) {
-      collectArraysByDepth(item, depth + 1, result, seen);
+      collectArraysByDepth(item, depth + 1, result, seen, state);
     }
     return;
   }
@@ -135,7 +144,7 @@ function collectArraysByDepth(
   seen.add(value);
 
   for (const child of Object.values(value)) {
-    collectArraysByDepth(child, depth + 1, result, seen);
+    collectArraysByDepth(child, depth + 1, result, seen, state);
   }
 }
 
@@ -154,7 +163,8 @@ function extractChannelIdsFromPayload(payload: unknown): string[] {
 
   const arrays: unknown[][] = [];
   const seen = new WeakSet<object>();
-  collectArraysByDepth(payload, 0, arrays, seen);
+  const scanState: ScanState = { iterations: 0 };
+  collectArraysByDepth(payload, 0, arrays, seen, scanState);
 
   let bestCandidate: string[] = [];
   let bestCoverage = 0;
@@ -211,6 +221,12 @@ export async function fetchFollowingLivesChannelOrder(
 ): Promise<readonly string[]> {
   const cachedSortOrder = cachedSortOrderByType[sortType] ?? null;
   const nowMs = Date.now();
+  const lastErrorMs = lastErrorMsByType[sortType] ?? 0;
+
+  if (!forceRefresh && nowMs - lastErrorMs < ERROR_BACKOFF_MS) {
+    return cachedSortOrder?.channelIds ?? [];
+  }
+
   if (
     !forceRefresh &&
     cachedSortOrder !== null &&
@@ -233,7 +249,10 @@ export async function fetchFollowingLivesChannelOrder(
       };
       return normalized;
     })
-    .catch(() => cachedSortOrderByType[sortType]?.channelIds ?? [])
+    .catch(() => {
+      lastErrorMsByType[sortType] = Date.now();
+      return cachedSortOrderByType[sortType]?.channelIds ?? [];
+    })
     .finally(() => {
       delete inFlightRequestByType[sortType];
     });

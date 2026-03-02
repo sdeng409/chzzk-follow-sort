@@ -418,6 +418,7 @@ function bootstrap(): void {
   let sortedChannelIdsByMode: Partial<Record<SortModeId, readonly string[]>> = {};
   const loadedModes = new Set<SortModeId>();
   const requestInFlightModes = new Set<SortModeId>();
+  let cachedContainer: HTMLElement | null = null;
 
   const isInReorderGuardWindow = (): boolean => Date.now() < reorderGuardUntil;
 
@@ -472,7 +473,12 @@ function bootstrap(): void {
       return;
     }
 
-    const container = findFollowingListContainer();
+    let container = cachedContainer;
+    if (!container || !document.body.contains(container) || container.children.length === 0) {
+      container = findFollowingListContainer();
+      cachedContainer = container;
+    }
+
     if (!container) {
       return;
     }

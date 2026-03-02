@@ -125,9 +125,14 @@ export function reorderFollowingListDom(
     };
   }
 
-  const isAlreadyOrdered = currentOrder.every(
-    (element, index) => element === desiredElements[index],
-  );
+  let isAlreadyOrdered = true;
+  for (let index = 0; index < desiredElements.length; index += 1) {
+    if (desiredElements[index]?.style.order !== String(index + 1)) {
+      isAlreadyOrdered = false;
+      break;
+    }
+  }
+
   if (isAlreadyOrdered) {
     return {
       itemsCount: domOrderedItems.length,
@@ -135,12 +140,18 @@ export function reorderFollowingListDom(
     };
   }
 
-  const fragment = document.createDocumentFragment();
-  for (const element of desiredElements) {
-    fragment.append(element);
+  const computedStyle = window.getComputedStyle(container);
+  if (computedStyle.display !== 'flex' && computedStyle.display !== 'grid') {
+    container.style.display = 'flex';
+    container.style.flexDirection = 'column';
   }
 
-  container.append(fragment);
+  for (let index = 0; index < desiredElements.length; index += 1) {
+    const element = desiredElements[index];
+    if (element) {
+      element.style.order = String(index + 1);
+    }
+  }
 
   return {
     itemsCount: domOrderedItems.length,
